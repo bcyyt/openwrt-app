@@ -1,0 +1,67 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_CN\n"
+
+msgid "Stateful Upgrade"
+msgstr "状态保持升级"
+
+msgid "Upload a firmware image. Before flashing, the current plugins, custom binaries, root password and SSH settings are saved. After reboot they are restored. Extra non-essential plugins that were not installed before the upgrade are removed."
+msgstr "上传固件后，刷写前会保存当前插件、自定义二进制、root 密码和 SSH 设置，重启后再恢复。升级前未安装的非 Essential 插件会被卸载。"
+
+msgid "Loading status..."
+msgstr "正在读取状态..."
+
+msgid "Current snapshot preview"
+msgstr "当前快照预览"
+
+msgid "Plugins"
+msgstr "插件"
+
+msgid "Custom binaries"
+msgstr "自定义二进制"
+
+msgid "Root password"
+msgstr "root 密码"
+
+msgid "SSH settings"
+msgstr "SSH 设置"
+
+msgid "Flash firmware"
+msgstr "刷写固件"
+
+msgid "Firmware image"
+msgstr "固件镜像"
+
+msgid "Save state and upgrade"
+msgstr "保存状态并升级"
+
+msgid "Last restore report"
+msgstr "最近一次恢复报告"
+
+msgid "Firmware image missing, unreadable, or empty"
+msgstr "固件文件缺失、不可读或为空"
+
+msgid "Snapshot saved, flashing firmware. The device will reboot."
+msgstr "快照已保存，正在刷写固件，设备即将重启。"
+
+msgid "captured"
+msgstr "已采集"
+
+msgid "missing"
+msgstr "未采集"
+
+msgid "Idle"
+msgstr "空闲"
+
+msgid "Pending upgrade"
+msgstr "待升级"
+
+msgid "Restoring; missing plugins will be retried on next boot"
+msgstr "正在恢复；未装回的插件会在下次开机重试"
+
+msgid "Last restore completed"
+msgstr "最近一次恢复已完成"
+
+msgid "Last job failed"
+msgstr "最近一次任务失败"

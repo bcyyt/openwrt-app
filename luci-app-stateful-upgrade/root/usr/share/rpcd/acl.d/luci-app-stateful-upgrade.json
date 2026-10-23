@@ -1,0 +1,20 @@
+{
+	"luci-app-stateful-upgrade": {
+		"description": "Grant access to stateful firmware upgrade",
+		"read": {
+			"cgi-io": [ "exec" ],
+			"file": {
+				"/usr/sbin/stateful-upgrade": [ "exec" ],
+				"/etc/stateful-upgrade/status": [ "read" ],
+				"/etc/stateful-upgrade/report.json": [ "read" ]
+			}
+		},
+		"write": {
+			"cgi-io": [ "upload", "exec" ],
+			"file": {
+				"/tmp/stateful-upgrade/": [ "write" ],
+				"/usr/sbin/stateful-upgrade": [ "exec" ]
+			}
+		}
+	}
+}

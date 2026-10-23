@@ -1,0 +1,18 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=10
+
+boot() {
+	[ -x /usr/sbin/stateful-upgrade ] || return 0
+	mkdir -p /etc/stateful-upgrade
+	/usr/sbin/stateful-upgrade restore >> /etc/stateful-upgrade/restore.log 2>&1 &
+}
+
+start() {
+	boot
+}
+
+stop() {
+	return 0
+}

@@ -1,0 +1,99 @@
+<%#
+LuCI page: preview snapshot, upload firmware, show last restore report.
+-%>
+<%+header%>
+
+<div class="cbi-map">
+	<h2 name="content"><%:Stateful Upgrade%></h2>
+	<div class="cbi-map-descr">
+		<%:Upload a firmware image. Before flashing, the current plugins, custom binaries, root password and SSH settings are saved. After reboot they are restored. Extra non-essential plugins that were not installed before the upgrade are removed.%>
+	</div>
+
+	<% if upgrade_error then %>
+	<div class="alert-message error"><%=upgrade_error%></div>
+	<% end %>
+
+	<div id="su-status-box" class="alert-message notice">
+		<%:Loading status...%>
+	</div>
+
+	<fieldset class="cbi-section">
+		<legend><%:Current snapshot preview%></legend>
+		<div class="cbi-section-node">
+			<div class="cbi-value"><label class="cbi-value-title"><%:Plugins%></label>
+				<div class="cbi-value-field" id="su-plugin-count">-</div></div>
+			<div class="cbi-value"><label class="cbi-value-title"><%:Custom binaries%></label>
+				<div class="cbi-value-field" id="su-binary-count">-</div></div>
+			<div class="cbi-value"><label class="cbi-value-title"><%:Root password%></label>
+				<div class="cbi-value-field" id="su-auth">-</div></div>
+			<div class="cbi-value"><label class="cbi-value-title"><%:SSH settings%></label>
+				<div class="cbi-value-field" id="su-ssh">-</div></div>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section">
+		<legend><%:Flash firmware%></legend>
+		<form method="post" action="<%=luci.dispatcher.build_url('admin/system/stateful_upgrade/upgrade')%>" enctype="multipart/form-data">
+			<input type="hidden" name="token" value="<%=token%>" />
+			<div class="cbi-section-node">
+				<div class="cbi-value">
+					<label class="cbi-value-title"><%:Firmware image%></label>
+					<div class="cbi-value-field">
+						<input type="file" name="image" accept=".bin,.img,.itb" required="required" />
+					</div>
+				</div>
+			</div>
+			<div class="cbi-page-actions">
+				<input class="btn cbi-button cbi-button-apply" type="submit" name="do_upgrade" value="<%:Save state and upgrade%>" />
+			</div>
+		</form>
+	</fieldset>
+
+	<fieldset class="cbi-section">
+		<legend><%:Last restore report%></legend>
+		<pre id="su-report" style="white-space:pre-wrap;max-height:24em;overflow:auto;">{}</pre>
+	</fieldset>
+</div>
+
+<script type="text/javascript">
+function suLoad(url, cb) {
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function() {
+		if (x.readyState === 4 && x.status === 200) cb(x.responseText);
+	};
+	x.open("GET", url, true);
+	x.send();
+}
+function suYesNo(v) { return v ? "<%:captured%>" : "<%:missing%>"; }
+suLoad("<%=luci.dispatcher.build_url('admin/system/stateful_upgrade/preview')%>", function(t) {
+	try {
+		var d = JSON.parse(t);
+		document.getElementById("su-plugin-count").textContent = d.plugin_count;
+		document.getElementById("su-binary-count").textContent = d.binary_count;
+		document.getElementById("su-auth").textContent = suYesNo(d.auth);
+		document.getElementById("su-ssh").textContent = suYesNo(d.ssh);
+	} catch (e) {}
+});
+suLoad("<%=luci.dispatcher.build_url('admin/system/stateful_upgrade/status')%>", function(t) {
+	try {
+		var d = JSON.parse(t);
+		var box = document.getElementById("su-status-box");
+		var map = {
+			idle: "<%:Idle%>",
+			pending: "<%:Pending upgrade%>",
+			restoring: "<%:Restoring; missing plugins will be retried on next boot%>",
+			completed: "<%:Last restore completed%>",
+			failed: "<%:Last job failed%>"
+		};
+		box.textContent = map[d.status] || d.status;
+		if (d.status === "failed") box.className = "alert-message error";
+		if (d.status === "completed") box.className = "alert-message success";
+		if (d.status === "restoring") box.className = "alert-message warning";
+	} catch (e) {}
+});
+suLoad("<%=luci.dispatcher.build_url('admin/system/stateful_upgrade/report')%>", function(t) {
+	document.getElementById("su-report").textContent = t || "{}";
+});
+</script>
+
+<%+footer%>

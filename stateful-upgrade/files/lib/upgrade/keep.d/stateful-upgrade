@@ -1,0 +1,4 @@
+/etc/stateful-upgrade/
+/etc/init.d/stateful-upgrade
+/usr/sbin/stateful-upgrade
+/usr/lib/stateful-upgrade/

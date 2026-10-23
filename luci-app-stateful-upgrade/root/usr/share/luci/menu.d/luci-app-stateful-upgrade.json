@@ -1,0 +1,16 @@
+{
+	"admin/system/stateful_upgrade": {
+		"title": "Stateful Upgrade",
+		"order": 88,
+		"action": {
+			"type": "template",
+			"path": "stateful_upgrade/overview"
+		},
+		"depends": {
+			"acl": [ "luci-app-stateful-upgrade" ],
+			"fs": {
+				"/usr/sbin/stateful-upgrade": "executable"
+			}
+		}
+	}
+}

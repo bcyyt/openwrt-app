@@ -1,0 +1,98 @@
+#!/bin/sh
+# Preserve plugins, custom binaries, root password and SSH across sysupgrade.
+
+SELF="$0"
+case "$SELF" in
+	/*) ;;
+	*) SELF="$(pwd)/$SELF" ;;
+esac
+BIN_DIR=$(dirname "$SELF")
+if [ -d "$BIN_DIR/../lib/stateful-upgrade" ]; then
+	LIB_DIR="$BIN_DIR/../lib/stateful-upgrade"
+else
+	LIB_DIR="/usr/lib/stateful-upgrade"
+fi
+
+# shellcheck disable=SC1091
+. "$LIB_DIR/common.sh"
+. "$LIB_DIR/pkg.sh"
+. "$LIB_DIR/snapshot.sh"
+. "$LIB_DIR/restore.sh"
+
+KEEP_FILE="$(su_path /lib/upgrade/keep.d/stateful-upgrade)"
+
+usage() {
+	cat <<EOF
+Usage: stateful-upgrade <command> [args]
+
+Commands:
+  preview              Show snapshot summary as JSON
+  snapshot             Write pre-upgrade snapshot
+  upgrade <image>      Snapshot, test image, then sysupgrade
+  upgrade <image> --force
+                       Snapshot and sysupgrade without --test
+  restore              Apply snapshot after reboot
+  status               Print idle|pending|restoring|completed|failed
+  report               Print last restore report JSON
+EOF
+}
+
+keep_entries_present() {
+	[ -f "$KEEP_FILE" ] || return 1
+	[ -x "$(su_path /usr/sbin/stateful-upgrade)" ] || [ -x "$SELF" ] || return 1
+	[ -d "$LIB_DIR" ] || return 1
+	[ -f "$(su_path /etc/init.d/stateful-upgrade)" ] || return 1
+	return 0
+}
+
+validate_image() {
+	_img="$1"
+	[ -n "$_img" ] || return 1
+	[ -f "$_img" ] || return 1
+	[ -r "$_img" ] || return 1
+	[ -s "$_img" ] || return 1
+	return 0
+}
+
+run_sysupgrade() {
+	_img="$1"
+	_force="$2"
+	_bin="${SYSUPGRADE_BIN:-sysupgrade}"
+	if [ "$_force" -ne 1 ]; then
+		if ! "$_bin" --test "$_img"; then
+			su_die "sysupgrade --test failed"
+		fi
+	fi
+	"$_bin" "$_img"
+}
+
+cmd_upgrade() {
+	_force=0
+	_img=""
+	for _a in "$@"; do
+		if [ "$_a" = "--force" ]; then
+			_force=1
+			continue
+		fi
+		_img="$_a"
+	done
+	validate_image "$_img" || su_die "firmware image missing, unreadable, or empty"
+	keep_entries_present || su_log "warning: keep.d persist files are incomplete"
+	cmd_snapshot || su_die "snapshot failed, upgrade aborted"
+	run_sysupgrade "$_img" "$_force"
+}
+
+CMD="${1:-}"
+[ -n "$CMD" ] || { usage; exit 1; }
+shift
+
+case "$CMD" in
+	preview) cmd_preview "$@" ;;
+	snapshot) cmd_snapshot "$@" ;;
+	upgrade) cmd_upgrade "$@" ;;
+	restore) cmd_restore "$@" ;;
+	status) cmd_status "$@" ;;
+	report) cmd_report "$@" ;;
+	-h|--help|help) usage ;;
+	*) usage; exit 1 ;;
+esac
